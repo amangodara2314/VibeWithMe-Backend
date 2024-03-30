@@ -6,10 +6,7 @@ class SongController {
     return new Promise((res, rej) => {
       try {
         if (image && audio) {
-          const imageName =
-            new Date().getTime() +
-            Math.floor(Math.random() * 2789) +
-            image.name;
+          const imageName = new Date().getTime() + image.name;
           const imageDestination = "./public/images/song/" + imageName;
           const songName =
             new Date().getTime() +

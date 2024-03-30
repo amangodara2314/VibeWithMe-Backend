@@ -5,10 +5,7 @@ class PlaylistController {
     return new Promise((res, rej) => {
       try {
         if (image) {
-          const imageName =
-            new Date().getTime() +
-            Math.floor(Math.random() * 2789) +
-            image.name;
+          const imageName = new Date().getTime() + image.name;
           const imageDestination = "./public/images/artist/" + imageName;
 
           image.mv(imageDestination, (err) => {
