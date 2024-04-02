@@ -16,10 +16,10 @@ app.use("/song", SongRouter);
 app.use("/playlist", PlaylistRouter);
 mongoose
   .connect(MONGODB, {
-    dbName: "VibeWithMe",
+    dbName: "VibeWithMeAdmin",
   })
   .then((success) => {
-    app.listen(process.env.port || 5000, () => {
+    app.listen(5000, () => {
       console.log("db connected and server started");
     });
   })

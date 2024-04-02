@@ -30,4 +30,25 @@ UserRouter.put("/create-playlist", (req, res) => {
     .catch((err) => res.send(err));
 });
 
+UserRouter.delete("/delete-playlist/:user/:id", (req, res) => {
+  new UserController()
+    .deletePlaylist(req.params.user, req.params.id)
+    .then((success) => res.send(success))
+    .catch((err) => res.send(err));
+});
+
+UserRouter.put("/add-songs", (req, res) => {
+  new UserController()
+    .addSongs(req.body)
+    .then((success) => res.send(success))
+    .catch((err) => res.send(err));
+});
+
+UserRouter.delete("/remove-song", (req, res) => {
+  new UserController()
+    .removeSong(req.body)
+    .then((success) => res.send(success))
+    .catch((err) => res.send(err));
+});
+
 module.exports = UserRouter;

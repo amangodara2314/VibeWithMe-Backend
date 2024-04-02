@@ -36,10 +36,13 @@ class UserController {
   login(data) {
     return new Promise(async (res, rej) => {
       try {
-        const user = await User.findOne({ email: data.email }).populate(
-          "favoriteSongs"
-        );
-
+        const user = await User.findOne({ email: data.email }).populate([
+          {
+            path: "createdPlaylist",
+            populate: { path: "songs", model: "Song" },
+          },
+          { path: "favoriteSongs", model: "Song" },
+        ]);
         if (user) {
           if (decryptPassword(user.password) == data.password) {
             res({
@@ -117,7 +120,13 @@ class UserController {
         }
         client.createdPlaylist.push({ name, songs });
         await client.save();
-        const updatedClient = await User.findOne({ email: user });
+        const updatedClient = await User.findOne({ email: user }).populate([
+          {
+            path: "createdPlaylist",
+            populate: { path: "songs", model: "Song" },
+          },
+          { path: "favoriteSongs", model: "Song" },
+        ]);
         res({
           msg: "Playlist Created",
           status: 1,
@@ -127,6 +136,112 @@ class UserController {
         console.log(error);
         rej({
           msg: "Internal Server Error",
+          status: 0,
+        });
+      }
+    });
+  }
+  deletePlaylist(user, id) {
+    return new Promise(async (res, rej) => {
+      try {
+        let client = await User.findOne({ email: user });
+        let filtered = client.createdPlaylist.filter((p) => p._id != id);
+        client.createdPlaylist = filtered;
+        await client.save();
+        const updatedClient = await User.findOne({ email: user }).populate([
+          {
+            path: "createdPlaylist",
+            populate: { path: "songs", model: "Song" },
+          },
+          { path: "favoriteSongs", model: "Song" },
+        ]);
+        res({
+          msg: "Playlist Created",
+          status: 1,
+          updatedClient,
+        });
+      } catch (error) {
+        console.log(error);
+        rej({
+          msg: "Internal Server Error",
+          status: 0,
+        });
+      }
+    });
+  }
+  addSongs({ songs, user, playlistId }) {
+    return new Promise(async (res, rej) => {
+      try {
+        let client = await User.findOne({ email: user });
+        const filtered = client.createdPlaylist.filter(
+          (p) => p._id == playlistId
+        );
+        for (let s = 0; s < songs.length; s++) {
+          if (filtered[0].songs.includes(songs[s]) != 1) {
+            filtered[0].songs.push(songs[s]);
+          }
+        }
+        client.createdPlaylist = client.createdPlaylist.map((p) => {
+          if (p._id == playlistId) {
+            return filtered[0];
+          }
+          return p;
+        });
+
+        await client.save();
+
+        const updatedClient = await User.findOne({ email: user }).populate([
+          {
+            path: "createdPlaylist",
+            populate: { path: "songs", model: "Song" },
+          },
+          { path: "favoriteSongs", model: "Song" },
+        ]);
+        res({
+          msg: "added successfully",
+          status: 1,
+          updatedClient,
+        });
+      } catch (error) {
+        rej({
+          msg: "Internal Server Error",
+          status: 0,
+        });
+      }
+    });
+  }
+  removeSong({ song, user, playlistId }) {
+    return new Promise(async (res, rej) => {
+      try {
+        let client = await User.findOne({ email: user });
+        let playlist = client.createdPlaylist.filter(
+          (s) => s._id == playlistId
+        );
+        playlist[0].songs = playlist[0].songs.filter((s) => s._id != song);
+        client.createdPlaylist = client.createdPlaylist.map((p) => {
+          if (p._id == playlistId) {
+            return playlist[0];
+          }
+          return p;
+        });
+        await client.save();
+
+        const updatedClient = await User.findOne({ email: user }).populate([
+          {
+            path: "createdPlaylist",
+            populate: { path: "songs", model: "Song" },
+          },
+          { path: "favoriteSongs", model: "Song" },
+        ]);
+
+        res({
+          msg: "removed successfully",
+          status: 1,
+          updatedClient,
+        });
+      } catch (error) {
+        rej({
+          msg: "Internal server error",
           status: 0,
         });
       }
